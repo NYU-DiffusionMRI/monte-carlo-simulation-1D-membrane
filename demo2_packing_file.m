@@ -1,13 +1,24 @@
-clear
-root = '/Users/hhl309/Documents/GitHub/monte-carlo-1D-membrane/packing';
-target = fullfile(root,'membrane_v4'); mkdir(target)
-load(fullfile(root,'Hellwig2014_bead.mat'));
+% In this example, we will create five 1d micro-geometries consisting of
+% permeable membranes, whose position is designed based on the axonal bead
+% distance in Fig. 6 in Hellwig et al., 1994 
+% (https://doi.org/10.1007/BF00198906).
+%
+% Author: Hong-Hsi Lee, December, 2019 (orcid.org/0000-0002-3663-6559)
 
-%% create packing based on histology
-ncat = 5;
-Lt = [100 400 1000 2000 3000];
+% set up the root and target directories on your own computer
+% root = '/directory/to/this/file';
+root = '.';
+target = fullfile(root,'hpc_code/input');
+
+% fiber.pos(:,1), The position of axonal beads on the 33 primay collaterals
+file = load(fullfile(root,'hpc_code/input/Hellwig2014_bead.mat'));
+fiber = file.fiber;
+
+%% Create 1d microstructure consisting of permeable membranes
+
+rng(0);
+ncat = 5;                           % Five micro-geometries
 for i = 1:ncat
-    rng(0);
     rooti = fullfile(target,sprintf('membrane_%u',i));
     mkdir(rooti);
     at = [];
@@ -17,8 +28,6 @@ for i = 1:ncat
     end
     at = at(randperm(numel(at)));
     xm = cumsum(at);
-    [~,If] = min(abs(xm-Lt(i)));
-    xm = xm(1:If);
     L = xm(end);
     xm = xm-xm(1)/2;
     xm = xm/L;
@@ -37,17 +46,10 @@ end
 
 %% create lookup table
 ncat = 5;
+NPix = 1e4;
 for i = 1:ncat
     rooti = fullfile(target,sprintf('membrane_%u',i));
     xm = load(fullfile(rooti,'phantom_xMem.txt'));
-    
-    L = load(fullfile(rooti,'phantom_res.txt'));
-    D0 = 2; dt = 2e-3;
-    dx = sqrt(2*D0*2e-3);
-    NPix_min = 1/min(xm);
-    NPix_max = L/dx;
-    NPix = round(NPix_min/2+NPix_max/2);
-    fprintf('Set NPix between %d and %d.\n',floor(NPix_min),ceil(NPix_max));
     
     A = zeros(NPix,1);
     am = ceil(xm*NPix);
