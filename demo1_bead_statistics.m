@@ -1,4 +1,4 @@
-% In this example, we will calculate (1) the power spectrum of restrictions
+% In this example, we calculate (1) the power spectrum of restrictions
 % along axons based on the position of axonal beads in Fig. 6 in Hellwig et
 % al., 1994 (https://doi.org/10.1007/BF00198906) and (2) the mean and 
 % variance of the bead number within a sliding window.

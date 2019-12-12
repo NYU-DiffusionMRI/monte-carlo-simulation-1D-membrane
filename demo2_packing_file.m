@@ -1,4 +1,4 @@
-% In this example, we will create five 1d micro-geometries consisting of
+% In this example, we create five 1d micro-geometries consisting of
 % permeable membranes, whose position is designed based on the axonal bead
 % distance in Fig. 6 in Hellwig et al., 1994 
 % (https://doi.org/10.1007/BF00198906).
@@ -14,78 +14,69 @@ target = fullfile(root,'hpc_code/input');
 file = load(fullfile(root,'hpc_code/input/Hellwig2014_bead.mat'));
 fiber = file.fiber;
 
-%% Create 1d microstructure consisting of permeable membranes
+%% Create 1d micro-geometry consisting of permeable membranes
 
 rng(0);
 ncat = 5;                           % Five micro-geometries
 for i = 1:ncat
     rooti = fullfile(target,sprintf('membrane_%u',i));
     mkdir(rooti);
-    at = [];
+    at = [];                        % Membrane distance of all axons
     for j = 1:numel(fiber)
         ai = diff(fiber(j).pos(:,1));
         at = cat(1,at,ai);
     end
-    at = at(randperm(numel(at)));
-    xm = cumsum(at);
-    L = xm(end);
+    at = at(randperm(numel(at)));   % Randomly shffule the membrane distance
+    xm = cumsum(at);                % Membrane position
+    L = xm(end);                    % Axonal length
     xm = xm-xm(1)/2;
-    xm = xm/L;
-    fid = fopen(fullfile(rooti,'phantom_xMem.txt'),'w');
+    xm = xm/L;                      % Membrane position normalized with the axonal length
+    
+    % Create files for simulations
+    fid = fopen(fullfile(rooti,'phantom_xMem.txt'),'w');    % Membrane position
     fprintf(fid,sprintf('%.8f\n',xm));
     fclose(fid);
     
-    fid = fopen(fullfile(rooti,'phantom_NMem.txt'),'w');
+    fid = fopen(fullfile(rooti,'phantom_NMem.txt'),'w');    % Membrane number
     fprintf(fid,sprintf('%u\n',numel(xm)));
     fclose(fid);
     
-    fid = fopen(fullfile(rooti,'phantom_res.txt'),'w');
+    fid = fopen(fullfile(rooti,'phantom_res.txt'),'w');     % Axonal length
     fprintf(fid,sprintf('%.8f\n',L));
     fclose(fid);
 end
 
-%% create lookup table
-ncat = 5;
-NPix = 1e4;
+%% Create lookup table for 1d micro-geometry
+
+ncat = 5;                           % Five micro-geometries
+NPix = 1e4;                         % Matrix size of the lookup table
 for i = 1:ncat
     rooti = fullfile(target,sprintf('membrane_%u',i));
-    xm = load(fullfile(rooti,'phantom_xMem.txt'));
+    xm = load(fullfile(rooti,'phantom_xMem.txt'));  % Load membrane position
+    at = [xm(1)*2; diff(xm)];       % Membrane distance
     
-    A = zeros(NPix,1);
-    am = ceil(xm*NPix);
+    % Check the matrix size of the lookup table
+    L = load(fullfile(rooti,'phantom_res.txt'));    % Load axonal length
+    D0 = 2;                         % Intrinsic diffusivity, micron^2/ms
+    dt = 2e-3;                      % Time-step, ms
+    dx = sqrt(2*D0*2e-3);           % Step size, micron
+    NPix_max = ceil(L/dx);          % Upper bound of the matrix size
+    fprintf('Membrane_%u: NPix shoudl be less than %d.\n',i,NPix_max);
+    
+    A = zeros(NPix,1);              % Lookup table
+    am = ceil(xm*NPix);             % Membrane position in lookup table
     if numel(unique(am)) == numel(am)
         A(am) = 1:numel(xm);
     else
-        fprintf('Use larger NPix for fiber %u\n',i)
+        fprintf('Use larger NPix for Membrane_%u.\n',i)
     end
-    fid = fopen(fullfile(rooti,'phantom_APix.txt'),'w');
+    
+    % Create files for simulations
+    fid = fopen(fullfile(rooti,'phantom_APix.txt'),'w');    % Lookup table
     fprintf(fid,sprintf('%u\n',A));
     fclose(fid);
     
-    fid = fopen(fullfile(rooti,'phantom_NPix.txt'),'w');
+    fid = fopen(fullfile(rooti,'phantom_NPix.txt'),'w');    % Matrix size
     fprintf(fid,sprintf('%u\n',NPix));
     fclose(fid);
 end
-
-%% Plot power spectrum
-ps = 0;
-pl = [];
-for i = 1:5
-    rooti = fullfile(target,sprintf('membrane_%u',i));
-    mi = load(fullfile(rooti,'phantom_APix.txt'));
-    ai = diff(find(mi)); pl(i) = var(ai)/mean(ai)^3;
-    km = fft(logical(mi));
-    ps = ps+abs(km).^2;
-end
-ps = ps/5/numel(ps);
-xx = 0:(numel(ps)-1);
-figure; plot(xx,ps); set(gca,'xscale','log','yscale','log')
-refline(0,mean(pl));
-
-
-
-
-
-
-
-

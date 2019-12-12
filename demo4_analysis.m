@@ -1,100 +1,75 @@
 clear
 close all
 
-%% analyze packing
-rootpck = '/Users/hhl309/Documents/GitHub/monte-carlo-1D-membrane/hpc_code/input_cuda/membrane_v4';
-files = dir(fullfile(rootpck,'membrane*'));
-abar = zeros(numel(files),1);
-avar = zeros(numel(files),1);
-Lt = zeros(numel(files),1);
-for i = 1:numel(files)
-    filename = files(i).name;
-    mx = load(fullfile(rootpck,filename,'phantom_xMem.txt'));
-    L = load(fullfile(rootpck,filename,'phantom_res.txt'));
-    mx = mx*L;
-    ai = [mx(1)-mx(end)+L; diff(mx)];
-    abar(i) = mean(ai);
-    avar(i) = var(ai);
-    Lt(i) = L;
-end
+% %% analyze packing
+% rootpck = '/Users/hhl309/Documents/GitHub/monte-carlo-1D-membrane/hpc_code/input_cuda/membrane_v2';
+% files = dir(fullfile(rootpck,'membrane*'));
+% abar = zeros(numel(files),1);
+% avar = zeros(numel(files),1);
+% for i = 1:numel(files)
+%     mx = load(fullfile(rootpck,files(i).name,'phantom_xMem.txt'));
+%     L = load(fullfile(rootpck,files(i).name,'phantom_res.txt'));
+%     mx = mx*L;
+%     ai = [mx(1)-mx(end)+L; diff(mx)];
+%     abar(i) = mean(ai);
+%     avar(i) = var(ai);
+% end
 
-%%
-root = '/Volumes/labspace/Honghsi/projects/simulation1D_cuda/proj000004';
+root = '/Volumes/labspace/Honghsi/projects/simulation1D_cuda/proj000002';
+% root = '/Users/hhl309/Documents/GitHub/monte-carlo-1D-membrane/hpc_code/submit_job_cuda/bigpurple/proj000001';
 
 dx2 = 0; dx4 = 0; NPar = 0; sig = 0;
-Di = []; Ki = [];
+% Di = []; Ki = [];
 for i = 1:5
-    rooti = fullfile(root,sprintf('setup%06u',i));
+    rooti = fullfile(root,sprintf('setup00000%u',i));
     dx2i = load(fullfile(rooti,'dx2_diffusion.txt'));
     dx4i = load(fullfile(rooti,'dx4_diffusion.txt'));
-%     dx2 = dx2+fi(i)*dx2i;
-%     dx4 = dx4+fi(i)*dx4i;
+    dx2 = dx2+dx2i;
+    dx4 = dx4+dx4i;
     sigi = load(fullfile(rooti,'sig_diffusion.txt'));
-%     sig = sig+fi(i)*sigi;
+    sig = sig+sigi;
     para = load(fullfile(rooti,'sim_para.txt'));
-%     NPar = NPar+fi(i)*para(3);
-    ti = load(fullfile(rooti,'diff_time.txt'));
-    Di = cat(2,Di,dx2i/para(3)/2./ti);
-    Ki = cat(2,Ki,dx4i/para(3)./(dx2i/para(3)).^2-3);
+    NPar = NPar+para(3);
+%     ti = load(fullfile(rooti,'diff_time.txt'));
+%     Di = cat(2,Di,dx2i/para(3)/2./ti);
+%     Ki = cat(2,Ki,dx4i/para(3)./(dx2i/para(3)).^2-3);
 end
 t = load(fullfile(rooti,'diff_time.txt'));
 bval = load(fullfile(rooti,'bval.txt'));
 dt = para(1);
 D0 = para(4);
 kappa = para(5);
-% kappa = kappa/(1-kappa*sqrt(dt/2)*(1/sqrt(D0)+1/sqrt(D0)));
+kappa = kappa/(1-kappa*sqrt(dt/2)*(1/sqrt(D0)+1/sqrt(D0)));
+abar = 4.4491;
+astd = 4.0464;
+tr = abar/2/kappa;
+zeta = D0/kappa/abar;
 
-%%
+dx2 = dx2/NPar;
+dx4 = dx4/NPar;
+D = dx2/2./t;
+K = dx4./dx2.^2-3;
 
-tri = abar/2/kappa;
-zeta = D0/kappa./abar;
-Dinfi = D0./(1+zeta);
-Ai = Dinfi.*sqrt(tri/2/pi).*avar./abar.^2.*( zeta./(1+zeta) ).^(3/2);
+sig = sig/NPar;
+% Ax = [bval bval.^2 bval.^3 bval.^4];
+% X = Ax(:,1:2)\log(sig.');
+% X = X.';
+% Ds = -X(:,1);
+% Ws = X(:,2);
+% Ks = 6*Ws./Ds.^2;
+% D = Ds; K = Ks;
 
-Xi = zeros(5,2);
-for i = 1:5
-    xx = t/tri(i);
-    [~,I1] = min(abs(xx-10));
-    flist = I1:10000;
-    Xi(i,:) = [ones(numel(flist),1) 1./sqrt(xx(flist))]\Di(flist,i);
-end
-
-figure('unit','inch','position',[0 0 15 6]);
-for i = 1:5
-    xx = t/tri(i);
-    subplot(2,5,i)
-    hold on;
-    plot(xx,Di(:,i)/Dinfi(i)-1,'b-','linewidth',1);
-    plot(xx,2*Ai(i)/Dinfi(i)./sqrt(t),'b:','linewidth',1);
-    set(gca,'xscale','log','yscale','log');
-    xlim([1e-1 250]); ylim([1e-3 1e0]);
-    set(gca,'fontsize',10,'xtick',10.^[-1:2]);
-    xlabel('$t/\tau_r$','interpreter','latex','fontsize',14);
-    ylabel('$(D(t)-D_\infty)/D_\infty$','interpreter','latex','fontsize',14);
-    box on; grid on;
-    title(sprintf('$L=%u \\mu$m',round(Lt(i))),'interpreter','latex','fontsize',14);
-    
-    subplot(2,5,i+5)
-    hold on;
-    plot(xx,Ki(:,i),'r-','linewidth',1);
-    plot(xx,4*Ai(i)/Dinfi(i)./sqrt(t),'r:','linewidth',1);
-    set(gca,'xscale','log','yscale','log');
-    xlim([1e-1 250]); ylim([1e-3 1e0]);
-    set(gca,'fontsize',10,'xtick',10.^[-1:2]);
-    xlabel('$t/\tau_r$','interpreter','latex','fontsize',14);
-    ylabel('$K(t)$','interpreter','latex','fontsize',14);
-    box on; grid on;
-end
-
-%%
-
-Dinf = sum(fi.*Dinfi);
-A = sum(Ai.*fi);
-Kinf = 3*(sum(fi.*Dinfi.^2)-Dinf^2)/Dinf^2;
+xx = t/tr;
+% [~,I1] = min(abs(xx-10));
+% flist = I1:10000;
+% X = [ones(numel(flist),1) 1./sqrt(xx(flist))]\D(flist);
+% Xk = [1./sqrt(xx(flist))]\K(flist);
+X = zeros(2,1);
+Dinf = D0/(1+zeta);
+A = Dinf*sqrt(tr/2/pi)*astd^2/abar^2*( zeta/(1+zeta) )^(3/2);
 X(1) = Dinf;
 X(2) = 2*A/sqrt(tr);
-Xk(1) = Kinf;
-Xk(2) = 4*A/Dinf/sqrt(tr);
+Xk = 4*A/Dinf/sqrt(tr);
 
 figure('unit','inch','position',[0 0 15 5]);
 h1 = subplot(131); p1 = h1.Position;
@@ -136,21 +111,21 @@ pbaspect([1 1 1]); box on; grid on;
 p2i = [0.46 0.39 0.16 0.43];
 h2i = axes('Position',p2i);
 hold on;
-plot(xx,K-Xk(1),'r-','linewidth',1);
+plot(xx,K,'r-','linewidth',1);
 % plot(xx,2*X(2)/X(1)*1./sqrt(xx),'r:','linewidth',1);
-plot(xx,Xk(2)./sqrt(xx),'r:','linewidth',1);
+plot(xx,Xk./sqrt(xx),'r:','linewidth',1);
 set(h2i,'xscale','log','yscale','log');
 xlim([1e-1 250]); ylim([1e-3 1e0]);
 set(gca,'fontsize',10,'xtick',10.^[-1:2]);
 xlabel('$t/\tau_r$','interpreter','latex','fontsize',14);
-ylabel('$K(t)-K_\infty$','interpreter','latex','fontsize',14);
+ylabel('$K(t)$','interpreter','latex','fontsize',14);
 box on; grid on;
 
 axes('position',p3);
 hold on;
 tlist = 2:10000;
 hd = plot(1./sqrt(xx(tlist)),D(tlist)/X(1)-1,'b-','linewidth',1);
-hk = plot(1./sqrt(xx(tlist)),K(tlist)-Xk(1),'r-','linewidth',1);
+hk = plot(1./sqrt(xx(tlist)),K(tlist),'r-','linewidth',1);
 xlim([0 2.5]); ylim([0 0.2]);
 hdr = refline(X(2)/X(1),0); set(hdr,'color','b','linestyle',':','linewidth',1);
 % hkr = refline(2*X(2)/X(1),0); set(hkr,'color','r','linestyle',':','linewidth',1);
@@ -159,15 +134,8 @@ xlim([0 2.5]); ylim([0 0.5]);
 set(gca,'xtick',0:0.5:10,'ytick',0:0.1:10,'fontsize',12);
 xlabel('$\sqrt{\tau_r/t}$','interpreter','latex','fontsize',20);
 ylabel('Diffusion Metrics','interpreter','latex','fontsize',20);
-legend([hd hk],{'$(D(t)-D_\infty)/D_\infty$','$K(t)-K_\infty$'},'interpreter','latex','fontsize',16,'location','northwest');
+legend([hd hk],{'$(D(t)-D_\infty)/D_\infty$','$K(t)$'},'interpreter','latex','fontsize',16,'location','northwest');
 pbaspect([1 1 1]); grid on; box on;
-
-%%
-SV = sum(fi.*2./abar);
-Dm = D0*(1-SV*(4/3*sqrt(D0*t/pi)));
-figure; plot(1./sqrt(t),D,'-b'); hold on;
-% plot(t(1:10),Dm(1:10),'--r');
-plot(1./sqrt(t),Dinf+2*A./sqrt(t),'--r');
 
 %% Plot D and K from cumulant and signal
 
