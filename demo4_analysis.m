@@ -1,20 +1,6 @@
 clear
 close all
 
-% %% analyze packing
-% rootpck = '/Users/hhl309/Documents/GitHub/monte-carlo-1D-membrane/hpc_code/input_cuda/membrane_v2';
-% files = dir(fullfile(rootpck,'membrane*'));
-% abar = zeros(numel(files),1);
-% avar = zeros(numel(files),1);
-% for i = 1:numel(files)
-%     mx = load(fullfile(rootpck,files(i).name,'phantom_xMem.txt'));
-%     L = load(fullfile(rootpck,files(i).name,'phantom_res.txt'));
-%     mx = mx*L;
-%     ai = [mx(1)-mx(end)+L; diff(mx)];
-%     abar(i) = mean(ai);
-%     avar(i) = var(ai);
-% end
-
 root = '/Volumes/labspace/Honghsi/projects/simulation1D_cuda/proj000002';
 % root = '/Users/hhl309/Documents/GitHub/monte-carlo-1D-membrane/hpc_code/submit_job_cuda/bigpurple/proj000001';
 
