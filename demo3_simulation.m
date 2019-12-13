@@ -42,11 +42,16 @@ for i = 1:numel(files)
     copyfile(fullfile(root_input,'bval.txt'),fullfile(root_input,files(i).name,'bval.txt'));
 end
 
-%% Run simulations
+%% Run simulations in CUDA C++, you must have an Nvidia GPU to run the code
 
 files = dir(fullfile(root_input,'membrane_*'));
 for i = 1:numel(files)
     target = fullfile(root_input,files(i).name);
-    system(sprintf('nvcc -arch=sm_70 -rdc=true %s/main.cu -o %s/my_code',root_lib,target));
+    
+    % The directory to nvcc might be different on your own computer.
+    % It might be easier to compile the code in the terminal.
+    system(sprintf('/usr/local/cuda/bin/nvcc -arch=sm_70 -rdc=true %s/main.cu -o %s/my_code',root_lib,target));
     system(sprintf('%s/my_code',target));
 end
+
+%% Exercise: Re-write the CUDA C++ code to a C++ code.
