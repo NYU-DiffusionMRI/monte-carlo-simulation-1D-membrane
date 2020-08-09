@@ -1,6 +1,6 @@
 # Monte Carlo simulations of diffusion through 1d permeable membranes (CUDA C++)
 
-The code re-implements 1d Monte Carlo simulations originally developed in [Fieremans, et al., NMR Biomed, 2010](https://doi.org/10.1002/nbm.1577) and [Novikov, et al., Nature Physics, 2011](https://doi.org/10.1038/nphys1936), demonstrating the power spectrum of bead distribution along axons (Figure 8) and diffusivity and kurtosis time-dependence (Figure 9) in [Lee and Papaioannou, et al., NeuroImage 2030](https://doi.org/10.1016/j.neuroimage.2020.117054).
+The code re-implements 1d Monte Carlo simulations originally developed in [Fieremans, et al., NMR Biomed, 2010](https://doi.org/10.1002/nbm.1577) and [Novikov, et al., Nature Physics, 2011](https://doi.org/10.1038/nphys1936), demonstrating the power spectrum of bead distribution along axons (Figure 8) and diffusivity and kurtosis time-dependence (Figure 9) in [Lee and Papaioannou, et al., NeuroImage 2020](https://doi.org/10.1016/j.neuroimage.2020.117054).
 
 * **Demo 1, bead statistics:** Concatenate the bead distributions along 33 axons coming from [Hellwig, et al., Biological Cybernetics, 1994](https://doi.org/10.1007/BF00198906), and calculate its power spectrum (Figure 8a) and the number of beads within a sliding window (Figure 8c).
 * **Demo 2, packing generation:** Generation of randomly distributed membranes based on the bead distance along axons in [Hellwig, et al., Biological Cybernetics, 1994](https://doi.org/10.1007/BF00198906).
