@@ -133,6 +133,7 @@ fiber = file.fiber;
 rng(0);
 % Here, we choose the (shortest bead distance)/37 as the length unit to
 % digitize the bead position of concatenated axon
+% (Why choose 37? Because it is a prime number.)
 vox = min(at)/37;
 sw = struct([]);                    % Sliding window result
 for i = 1:numel(fiber)

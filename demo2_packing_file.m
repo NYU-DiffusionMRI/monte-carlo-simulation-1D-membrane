@@ -50,6 +50,10 @@ end
 
 ncat = 5;                           % Five micro-geometries
 NPix = 1e4;                         % Matrix size of the lookup table
+% The pixel size of the lookup table should be larger than the step size,
+% leading to the upper bound of the NPix.
+% The pixel size of the lookup table should be smaller than the distance
+% between membranes, leading to the lower bound of the NPix.
 for i = 1:ncat
     rooti = fullfile(target,sprintf('membrane_%u',i));
     xm = load(fullfile(rooti,'phantom_xMem.txt'));  % Load membrane position
@@ -61,7 +65,7 @@ for i = 1:ncat
     dt = 2e-3;                      % Time-step, ms
     dx = sqrt(2*D0*2e-3);           % Step size, micron
     NPix_max = ceil(L/dx);          % Upper bound of the matrix size
-    fprintf('Membrane_%u: NPix shoudl be less than %d.\n',i,NPix_max);
+    fprintf('Membrane_%u: NPix should be less than %d.\n',i,NPix_max);
     
     A = zeros(NPix,1);              % Lookup table
     am = ceil(xm*NPix);             % Membrane position in lookup table

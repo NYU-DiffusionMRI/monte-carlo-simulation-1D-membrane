@@ -40,8 +40,8 @@ K = dx4./dx2.^2-3;                  % Kurtosis given by moments
 sig = sig/NPar;
 
 % The genuine permeability in simulation is always larger than the input
-% value. Here, we corrected the permeability based on Eq. (B7) in Appendix
-% B of (Lee and Papaioannou, et al., NeuroImage, 2019).
+% value. Here, we corrected the permeability based on Eq. (B3) in Appendix
+% B of (Lee and Papaioannou, et al., NeuroImage, 2020).
 dx = sqrt(2*D0*dt);
 kappa = kappa0/(1-kappa0*dx/D0);
 
@@ -58,8 +58,8 @@ end
 abar = mean(at);                    % Mean membrane distance
 astd = std(at);                     % Standard deviation of membrane distance
 
-% Calculate theoretical values of time-dependence parameters in Eqs. (10-12)
-% of (Lee and Papaioannou, et al., NeuroImage, 2019).
+% Calculate theoretical values of time-dependence parameters in Eqs. (17-18)
+% of (Lee and Papaioannou, et al., NeuroImage, 2020).
 tr = abar/2/kappa;                  % Mean residence time within a typical membrane distance
 zeta = D0/kappa/abar;
 Dinf = D0/(1+zeta);                 % Bulk diffusivity in t -> infinity limit
